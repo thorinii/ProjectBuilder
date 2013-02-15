@@ -4,6 +4,7 @@
  */
 package projectbuilder.project;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.*;
 import static org.junit.Assert.*;
@@ -19,7 +20,8 @@ public class ProjectManagerTest {
 
     @Test
     public void testNewProject() {
-        ProjectManager manager = new ProjectManager(new DummyBuildQueue());
+        ProjectManager manager = new ProjectManager(new DummyProjectDao(),
+                                                    new DummyBuildQueue());
         JobNotification notification = makeNotification();
 
         manager.pushJob(notification);
@@ -34,7 +36,8 @@ public class ProjectManagerTest {
 
     @Test
     public void testExistingProject() {
-        ProjectManager manager = new ProjectManager(new DummyBuildQueue());
+        ProjectManager manager = new ProjectManager(new DummyProjectDao(),
+                                                    new DummyBuildQueue());
         JobNotification notification = makeNotification();
 
         manager.pushJob(notification);
@@ -54,6 +57,35 @@ public class ProjectManagerTest {
                 JobNotification.Build.PHASE_FINISHED,
                 JobNotification.Build.STATUS_SUCCESS,
                 "build/34"));
+    }
+
+    private static class DummyProjectDao implements ProjectDao {
+
+        private final List<Project> projects;
+
+        public DummyProjectDao() {
+            projects = new ArrayList<>();
+        }
+
+        @Override
+        public Project newProject(String name) {
+            Project project = new Project(name);
+            projects.add(project);
+            return project;
+        }
+
+        @Override
+        public List<Project> getProjects() {
+            return projects;
+        }
+
+        @Override
+        public Project getProjectByName(String name) {
+            for (Project project : projects)
+                if (project.getName().equals(name))
+                    return project;
+            return null;
+        }
     }
 
     private static class DummyBuildQueue implements BuildQueue {

@@ -15,31 +15,31 @@ import projectbuilder.trigger.JobNotification;
  */
 public class ProjectManager {
 
-    private final List<Project> projects;
+    private final ProjectDao projectDao;
     private final BuildQueue buildQueue;
 
-    public ProjectManager(BuildQueue buildQueue) {
-        projects = new ArrayList<>();
+    public ProjectManager(ProjectDao projectDao,
+            BuildQueue buildQueue) {
+        this.projectDao = projectDao;
         this.buildQueue = buildQueue;
     }
 
     public void pushJob(JobNotification notification) {
         Project project = getProject(notification.getName());
-        buildQueue.pushJob(project, notification);
+
+        if (project.isEnabled())
+            buildQueue.pushJob(project, notification);
     }
 
     private Project getProject(String name) {
-        for (Project project : projects) {
-            if (project.getName().equals(name))
-                return project;
-        }
-
-        Project project = new Project(name);
-        projects.add(project);
-        return project;
+        Project project = projectDao.getProjectByName(name);
+        if (project != null)
+            return project;
+        else
+            return projectDao.newProject(name);
     }
 
     public List<Project> getProjects() {
-        return projects;
+        return projectDao.getProjects();
     }
 }

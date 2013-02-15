@@ -27,5 +27,7 @@ public class ProjectBuilder implements BuildProcessor {
     @Override
     public void process(Project project) {
         LOG.log(Level.INFO, "Building {0}", project);
+        
+        
     }
 }

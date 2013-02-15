@@ -13,13 +13,28 @@ import java.util.Objects;
 public class Project {
 
     private final String name;
+    private final ProjectConfig config;
 
     public Project(String name) {
         this.name = name;
+        this.config = new ProjectConfig();
+    }
+
+    public Project(String name, ProjectConfig config) {
+        this.name = name;
+        this.config = config;
     }
 
     public String getName() {
         return name;
+    }
+
+    public ProjectConfig getConfig() {
+        return config;
+    }
+
+    public boolean isEnabled() {
+        return config.isEnabled();
     }
 
     @Override

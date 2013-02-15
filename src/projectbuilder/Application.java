@@ -2,6 +2,7 @@ package projectbuilder;
 
 import projectbuilder.build.ProjectBuilder;
 import projectbuilder.project.ProjectManager;
+import projectbuilder.project.StandardProjectDao;
 import projectbuilder.queue.BuildQueue;
 import projectbuilder.queue.StandardBuildQueue;
 
@@ -19,7 +20,7 @@ public class Application {
     public Application() {
         config = new Config();
         buildQueue = new StandardBuildQueue();
-        projectManager = new ProjectManager(buildQueue);
+        projectManager = new ProjectManager(new StandardProjectDao(), buildQueue);
 
         builder = new ProjectBuilder(buildQueue);
         buildQueue.addProcessor(builder);

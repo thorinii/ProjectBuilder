@@ -1,8 +1,0 @@
-Feb 15, 2013 6:09:56 PM projectbuilder.Main main
-INFO: Starting up
-Feb 15, 2013 6:09:56 PM projectbuilder.Main main
-INFO: Ready
-Feb 15, 2013 6:10:04 PM projectbuilder.trigger.JobTriggerHandler process
-INFO: Successful Build for Mountain Range PvP - Master
-Feb 15, 2013 6:10:04 PM projectbuilder.build.ProjectBuilder process
-INFO: Building Project{name=Mountain Range PvP - Master}

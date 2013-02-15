@@ -6,10 +6,8 @@ package projectbuilder.queue;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import org.junit.AfterClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.junit.BeforeClass;
 import projectbuilder.project.Project;
 import projectbuilder.trigger.JobNotification;
 
@@ -21,8 +19,6 @@ public class StandardBuildQueueTest {
 
     @Test
     public void testPushJob() {
-        System.out.println("pushJob");
-
         final Project project = null;
         JobNotification notification = null;
 
