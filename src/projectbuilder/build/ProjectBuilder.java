@@ -55,7 +55,7 @@ public class ProjectBuilder implements BuildProcessor {
             outputDir.mkdir();
 
         LOG.log(Level.INFO, "Downloading {0}", project);
-        // TODO: downloadProject(project, buildDir);
+        downloadProject(project, buildDir);
 
         LOG.log(Level.INFO, "Compiling {0}", project);
         compileProject(buildDir, buildInfo);
