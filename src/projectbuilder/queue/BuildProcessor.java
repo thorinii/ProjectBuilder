@@ -12,5 +12,5 @@ import projectbuilder.project.Project;
  */
 public interface BuildProcessor {
 
-    public void process(Project project);
+    public void process(Project project) throws ProjectBuildException;
 }

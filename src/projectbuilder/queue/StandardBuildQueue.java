@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import projectbuilder.build.ProjectBuilder;
 import projectbuilder.project.Project;
 import projectbuilder.trigger.JobNotification;
 
@@ -17,6 +20,8 @@ import projectbuilder.trigger.JobNotification;
  */
 public class StandardBuildQueue implements BuildQueue {
 
+    private static final Logger LOG = Logger.getLogger(StandardBuildQueue.class.
+            getName());
     private final List<BuildProcessor> processors;
     private final ExecutorService processorService;
 
@@ -42,7 +47,11 @@ public class StandardBuildQueue implements BuildQueue {
 
                 @Override
                 public void run() {
-                    processor.process(project);
+                    try {
+                        processor.process(project);
+                    } catch (Exception e) {
+                        LOG.log(Level.SEVERE, "Error in BuildProcessor", e);
+                    }
                 }
             });
         }

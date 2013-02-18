@@ -5,6 +5,7 @@ import projectbuilder.project.ProjectManager;
 import projectbuilder.project.StandardProjectDao;
 import projectbuilder.queue.BuildQueue;
 import projectbuilder.queue.StandardBuildQueue;
+import projectbuilder.upload.Uploader;
 
 /**
  *
@@ -22,7 +23,7 @@ public class Application {
         buildQueue = new StandardBuildQueue();
         projectManager = new ProjectManager(new StandardProjectDao(), buildQueue);
 
-        builder = new ProjectBuilder(buildQueue);
+        builder = new ProjectBuilder(null);
         buildQueue.addProcessor(builder);
     }
 

@@ -37,6 +37,10 @@ public class Project {
         return config.isEnabled();
     }
 
+    public String getProjectDir() {
+        return name.toLowerCase().replace(" ", "-");
+    }
+
     @Override
     public String toString() {
         return "Project{" + "name=" + name + '}';
