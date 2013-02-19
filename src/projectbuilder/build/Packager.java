@@ -23,6 +23,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import projectbuilder.project.Project;
 import projectbuilder.project.ProjectConfig;
+import projectbuilder.queue.BuildRequest;
 
 /**
  *
@@ -32,10 +33,10 @@ public class Packager {
 
     private static final Logger LOG = Logger.getLogger(Packager.class.getName());
 
-    public File pack(Project project, File buildDir, File outputDir,
-            String version) throws IOException {
-        ProjectConfig.PackagerInfo packagerInfo = project.getConfig().
-                getPackagerInfo();
+    public File pack(BuildRequest request, File buildDir, File outputDir) throws
+            IOException {
+        ProjectConfig.PackagerInfo packagerInfo =
+                request.getProject().getConfig().getPackagerInfo();
 
         File buildOutputJar = new File(buildDir, packagerInfo.getInput());
         Set<String> libraries = new HashSet<>();
@@ -48,10 +49,10 @@ public class Packager {
         switch (packagerInfo.getType()) {
             case ZIP:
                 return zipProject(packagerInfo, buildDir, buildOutputJar,
-                                  libraries, version);
+                                  libraries, request.getVersion());
             case JAR:
                 return jarProject(packagerInfo, buildDir, buildOutputJar,
-                                  libraries, version);
+                                  libraries, request.getVersion());
             default:
                 LOG.warning("Not sure how to package project");
                 return null;
@@ -62,9 +63,7 @@ public class Packager {
             File buildDir, File buildOutputJar, Set<String> libraries,
             String version) throws IOException {
 
-        String outputName = packagerInfo.getOutput();
-        outputName = outputName.replace("%v", version);
-
+        String outputName = packagerInfo.getOutput(version);
         File output = new File(buildDir, "../out/" + outputName);
 
         try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(
@@ -104,9 +103,7 @@ public class Packager {
             File buildDir, File buildOutputJar, Set<String> libraries,
             String version) throws IOException {
 
-        String outputName = packagerInfo.getOutput();
-        outputName = outputName.replace("%v", version);
-
+        String outputName = packagerInfo.getOutput(version);
         File output = new File(buildDir, "../out/" + outputName);
 
         Manifest manifest = new Manifest(getManifest(buildOutputJar));

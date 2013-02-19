@@ -4,13 +4,11 @@
  */
 package projectbuilder.queue;
 
-import projectbuilder.project.Project;
-
 /**
  *
  * @author lachlan
  */
 public interface BuildProcessor {
 
-    public void process(Project project) throws ProjectBuildException;
+    public void process(BuildRequest buildRequest) throws ProjectBuildException;
 }

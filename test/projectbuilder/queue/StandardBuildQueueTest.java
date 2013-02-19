@@ -28,20 +28,20 @@ public class StandardBuildQueueTest {
         queue.addProcessor(new BuildProcessor() {
 
             @Override
-            public void process(Project p) {
-                if (p == project)
+            public void process(BuildRequest br) {
+                if (br.getProject() == project)
                     testLatch.countDown();
             }
         });
 
         queue.pushJob(project, notification);
-        
-        try{
+
+        try {
             boolean success = testLatch.await(5, TimeUnit.SECONDS);
-            
-            if(!success)
+
+            if (!success)
                 fail("Did not succeed in 1 second");
-        }catch(InterruptedException ie){
+        } catch (InterruptedException ie) {
             fail("Interrupted");
         }
     }

@@ -58,7 +58,7 @@ public class AntRunner {
 
         @Override
         public void taskStarted(BuildEvent event) {
-            LOG.fine("  " + event.getTask().getTaskName().trim());
+            LOG.log(Level.FINE, "  {0}", event.getTask().getTaskName().trim());
         }
 
         @Override
@@ -68,12 +68,11 @@ public class AntRunner {
         @Override
         public void messageLogged(BuildEvent event) {
             if (event.getTask() != null) {
-                LOG.fine("    {" + event.getMessage().trim() + "}");
+                LOG.log(Level.FINE, "    '{'{0}'}'", event.getMessage().trim());
             } else if (event.getTarget() != null) {
-                LOG.fine("  {" + event.getMessage().trim() + "}");
-
+                LOG.log(Level.FINE, "  '{'{0}'}'", event.getMessage().trim());
             } else {
-                LOG.fine("{" + event.getMessage().trim() + "}");
+                LOG.log(Level.FINE, "'{'{0}'}'", event.getMessage().trim());
             }
         }
     }

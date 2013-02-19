@@ -27,7 +27,7 @@ public class StandardBuildQueue implements BuildQueue {
 
     public StandardBuildQueue() {
         processors = new ArrayList<>();
-        processorService = Executors.newCachedThreadPool();
+        processorService = Executors.newSingleThreadExecutor();
     }
 
     @Override
@@ -42,17 +42,24 @@ public class StandardBuildQueue implements BuildQueue {
 
     @Override
     public void pushJob(final Project project, JobNotification notification) {
+        BuildRequest buildInfo = new BuildRequest(project);
+
+        pushJob(buildInfo);
+    }
+
+    @Override
+    public void pushJob(final BuildRequest buildRequest) {
         for (final BuildProcessor processor : processors) {
             processorService.submit(new Runnable() {
 
                 @Override
                 public void run() {
                     try {
-                        processor.process(project);
+                        processor.process(buildRequest);
                     } catch (Exception e) {
                         LOG.log(Level.SEVERE, "Error in BuildProcessor", e);
                     } catch (Throwable e) {
-                        LOG.log(Level.SEVERE, "SEVERE Error in BuildProcess", e);
+                        LOG.log(Level.SEVERE, "SEVERE Error in BuildProcesser", e);
                         throw e;
                     }
                 }

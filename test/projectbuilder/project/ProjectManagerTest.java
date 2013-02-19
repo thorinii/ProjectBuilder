@@ -10,6 +10,7 @@ import org.junit.*;
 import static org.junit.Assert.*;
 import projectbuilder.queue.BuildProcessor;
 import projectbuilder.queue.BuildQueue;
+import projectbuilder.queue.BuildRequest;
 import projectbuilder.trigger.JobNotification;
 
 /**
@@ -100,6 +101,10 @@ public class ProjectManagerTest {
 
         @Override
         public void pushJob(Project project, JobNotification notification) {
+        }
+
+        @Override
+        public void pushJob(BuildRequest buildRequest) {
         }
     }
 }

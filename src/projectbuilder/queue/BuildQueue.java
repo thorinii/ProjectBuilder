@@ -18,4 +18,6 @@ public interface BuildQueue {
     public void removeProcessor(BuildProcessor processor);
 
     public void pushJob(Project project, JobNotification notification);
+
+    public void pushJob(BuildRequest buildRequest);
 }

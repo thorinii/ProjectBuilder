@@ -15,11 +15,12 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.tools.ant.BuildException;
-import projectbuilder.Config;
 import projectbuilder.project.Project;
 import projectbuilder.project.ProjectConfig;
 import projectbuilder.project.ProjectConfig.BuildInfo;
 import projectbuilder.queue.BuildProcessor;
+import projectbuilder.queue.BuildQueue;
+import projectbuilder.queue.BuildRequest;
 import projectbuilder.upload.Uploader;
 
 /**
@@ -30,68 +31,100 @@ public class ProjectBuilder implements BuildProcessor {
 
     private static final Logger LOG = Logger.getLogger(ProjectBuilder.class.
             getName());
+    private final BuildQueue buildQueue;
     private final Uploader uploader;
     private final Packager packager;
 
-    public ProjectBuilder(Uploader uploader) {
+    public ProjectBuilder(BuildQueue buildQueue, Uploader uploader) {
+        this.buildQueue = buildQueue;
         this.uploader = uploader;
         this.packager = new Packager();
     }
 
     @Override
-    public void process(Project project) throws ProjectBuildException {
-        LOG.log(Level.INFO, "Building {0}", project);
+    public void process(BuildRequest request) throws ProjectBuildException {
+        LOG.log(Level.INFO, "Building {0}", request);
 
+        Project project = request.getProject();
         ProjectConfig.BuildInfo buildInfo = project.getConfig().getBuildInfo();
 
         File projectDir = new File("projects/" + project.getProjectDir());
         File buildDir = new File(projectDir, "build");
         File outputDir = new File(projectDir, "out");
 
+        Git git = new Git(buildDir);
+
         if (!outputDir.exists())
             outputDir.mkdir();
 
-        LOG.log(Level.INFO, "Downloading {0}", project);
-        downloadProject(project, buildDir);
-
-        LOG.log(Level.INFO, "Compiling {0}", project);
+        downloadProject(request, buildDir, git);
+        buildOtherVersions(request, git, outputDir);
         compileProject(buildDir, buildInfo);
+        packageAndUploadProject(request, buildDir, outputDir);
 
-        LOG.log(Level.INFO, "Packaging and Uploading {0}", project);
-        packageAndUploadProject(project, buildDir, outputDir);
-
-        LOG.log(Level.INFO, "Build {0} successful", project);
+        LOG.log(Level.INFO, "Build {0} successful", request);
     }
 
-    private void downloadProject(Project project, File buildDir) throws
+    private void downloadProject(BuildRequest request, File buildDir, Git git) throws
             ProjectBuildException {
-        if (buildDir.exists())
-            deleteFile(buildDir);
+        LOG.info("Downloading");
 
-        List<String> cmd = new ArrayList<>();
-        cmd.add("git");
-        cmd.add("clone");
-        cmd.add(project.getConfig().getSCSInfo().getURI());
-        cmd.add(buildDir.getAbsolutePath());
+        Project project = request.getProject();
+        ProjectConfig.SCSInfo scsInfo = project.getConfig().getSCSInfo();
 
-        ProcessBuilder processBuilder = new ProcessBuilder(cmd);
         try {
-            Process process = processBuilder.start();
-            process.waitFor();
+            if (buildDir.exists()) {
+                git.updateFromRemote();
+            } else {
+                git.clone(scsInfo.getURI());
+            }
 
-            if (process.exitValue() != 0)
-                throw new ProjectBuildException("git clone exited with status of "
-                        + process.exitValue());
+            if (request.isLatest()) {
+                git.switchToHead();
+            } else {
+                git.switchToTag(request.getVersion());
+            }
         } catch (IOException ioe) {
             throw new ProjectBuildException("Error running git clone", ioe);
-        } catch (InterruptedException ie) {
-            throw new ProjectBuildException(
-                    "Interrupted while waiting for git clone", ie);
+        }
+    }
+
+    private void buildOtherVersions(BuildRequest request,
+            Git git, File outputDir) throws ProjectBuildException {
+        LOG.info("Looking for new versions");
+
+        if (!request.isLatest() || buildQueue == null)
+            return;
+
+        Project project = request.getProject();
+
+        List<String> tags;
+        try {
+            tags = git.listTags();
+        } catch (IOException ex) {
+            LOG.log(Level.WARNING, "Could not get tags", ex);
+            return;
+        }
+
+        LOG.log(Level.FINE, "Found tags: {0}", tags);
+
+        for (String tag : tags) {
+            File tagBuild = new File(outputDir,
+                                     project.getConfig().getPackagerInfo().
+                    getOutput(tag));
+
+            if (!tagBuild.exists()) {
+                LOG.log(Level.INFO, "Pushing Job {0} {1}", new Object[]{project,
+                            tag});
+                buildQueue.pushJob(new BuildRequest(project, tag));
+            }
         }
     }
 
     private void compileProject(File buildDir, BuildInfo buildInfo) throws
             ProjectBuildException {
+        LOG.info("Compiling");
+
         try {
             AntRunner antRunner = new AntRunner();
             antRunner.run(
@@ -102,53 +135,15 @@ public class ProjectBuilder implements BuildProcessor {
         }
     }
 
-    private void packageAndUploadProject(Project project, File buildDir,
+    private void packageAndUploadProject(BuildRequest request, File buildDir,
             File outputDir) throws ProjectBuildException {
+        LOG.info("Packaging and Uploading");
+
         File packaged;
         try {
-            packaged = packager.pack(project, buildDir, outputDir, "dev");
+            packaged = packager.pack(request, buildDir, outputDir);
         } catch (IOException ex) {
             throw new ProjectBuildException("Could not package project", ex);
-        }
-    }
-
-    private List<String> listTags(File devDir) throws ProjectBuildException {
-        List<String> cmd = new ArrayList<>();
-        cmd.add("git");
-        cmd.add("clone");
-        cmd.add("-l");
-
-        ProcessBuilder processBuilder = new ProcessBuilder(cmd);
-
-        try {
-            Process process = processBuilder.start();
-            List<String> tags = new ArrayList<>();
-
-            try (BufferedReader br = new BufferedReader(
-                            new InputStreamReader(
-                            process.getInputStream()))) {
-                String tag;
-                while ((tag = br.readLine()) != null) {
-                    tags.add(tag);
-                }
-            }
-
-            return tags;
-        } catch (IOException ioe) {
-            LOG.log(Level.WARNING, "Could not list tags", ioe);
-            return Collections.emptyList();
-        }
-    }
-
-    private void deleteFile(File file) {
-        if (file.isDirectory()) {
-            for (File sub : file.listFiles()) {
-                deleteFile(sub);
-            }
-
-            file.delete();
-        } else {
-            file.delete();
         }
     }
 }

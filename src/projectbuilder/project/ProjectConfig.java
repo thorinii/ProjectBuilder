@@ -179,6 +179,10 @@ public class ProjectConfig {
             return output;
         }
 
+        public String getOutput(String version) {
+            return output.replace("%v", version);
+        }
+
         public PackagingType getType() {
             return type;
         }

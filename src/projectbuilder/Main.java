@@ -37,16 +37,15 @@ public class Main {
 
     private static void setupLogger(List<String> args) {
         Logger root = Logger.getLogger("projectbuilder");
-
-        if (args.contains("-debug"))
-            root.setLevel(Level.ALL);
-        else
-            root.setLevel(Level.INFO);
-
         root.setUseParentHandlers(false);
 
         ConsoleHandler consoleHandler = new ConsoleHandler();
-        consoleHandler.setLevel(Level.ALL);
+
+        if (args.contains("-debug"))
+            consoleHandler.setLevel(Level.ALL);
+        else
+            consoleHandler.setLevel(Level.INFO);
+
         root.addHandler(consoleHandler);
 
         try {
@@ -64,7 +63,7 @@ public class Main {
             FileHandler activityLogFile = new FileHandler(
                     "projectbuilder-activity.txt");
             activityLogFile.setFormatter(new SimpleFormatter());
-            activityLogFile.setLevel(Level.FINE);
+            activityLogFile.setLevel(Level.FINER);
 
             root.addHandler(activityLogFile);
         } catch (IOException ioe) {

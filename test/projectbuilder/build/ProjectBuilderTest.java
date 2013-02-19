@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.junit.Ignore;
 import projectbuilder.project.Project;
 import projectbuilder.project.StandardProjectDao;
+import projectbuilder.queue.BuildRequest;
 import projectbuilder.queue.ProjectBuildException;
 
 /**
@@ -27,10 +28,10 @@ public class ProjectBuilderTest {
             return;
         }
 
-        ProjectBuilder builder = new ProjectBuilder(null);
+        ProjectBuilder builder = new ProjectBuilder(null, null);
 
         try {
-            builder.process(proj);
+            builder.process(new BuildRequest(proj));
         } catch (ProjectBuildException pbe) {
             pbe.getCause().printStackTrace();
 

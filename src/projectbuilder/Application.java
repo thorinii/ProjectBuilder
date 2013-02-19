@@ -23,7 +23,7 @@ public class Application {
         buildQueue = new StandardBuildQueue();
         projectManager = new ProjectManager(new StandardProjectDao(), buildQueue);
 
-        builder = new ProjectBuilder(null);
+        builder = new ProjectBuilder(buildQueue, null);
         buildQueue.addProcessor(builder);
     }
 
