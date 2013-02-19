@@ -51,6 +51,9 @@ public class StandardBuildQueue implements BuildQueue {
                         processor.process(project);
                     } catch (Exception e) {
                         LOG.log(Level.SEVERE, "Error in BuildProcessor", e);
+                    } catch (Throwable e) {
+                        LOG.log(Level.SEVERE, "SEVERE Error in BuildProcess", e);
+                        throw e;
                     }
                 }
             });
