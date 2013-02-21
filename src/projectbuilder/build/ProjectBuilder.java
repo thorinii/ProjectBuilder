@@ -5,12 +5,8 @@
 package projectbuilder.build;
 
 import projectbuilder.queue.ProjectBuildException;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,8 +55,11 @@ public class ProjectBuilder implements BuildProcessor {
 
         downloadProject(request, buildDir, git);
         buildOtherVersions(request, git, outputDir);
-        compileProject(buildDir, buildInfo);
-        packageAndUploadProject(request, buildDir, outputDir);
+
+        if (project.getConfig().getBuildDev()) {
+            compileProject(buildDir, buildInfo);
+            packageAndUploadProject(request, buildDir, outputDir);
+        }
 
         LOG.log(Level.INFO, "Build {0} successful", request);
     }
@@ -85,7 +84,7 @@ public class ProjectBuilder implements BuildProcessor {
                 git.switchToTag(request.getVersion());
             }
         } catch (IOException ioe) {
-            throw new ProjectBuildException("Error running git clone", ioe);
+            throw new ProjectBuildException("Error downloading project", ioe);
         }
     }
 
@@ -137,13 +136,20 @@ public class ProjectBuilder implements BuildProcessor {
 
     private void packageAndUploadProject(BuildRequest request, File buildDir,
             File outputDir) throws ProjectBuildException {
-        LOG.info("Packaging and Uploading");
+        LOG.info("Packaging...");
 
         File packaged;
         try {
             packaged = packager.pack(request, buildDir, outputDir);
         } catch (IOException ex) {
             throw new ProjectBuildException("Could not package project", ex);
+        }
+
+        LOG.info("...and Uploading");
+        try {
+            uploader.upload(request, packaged);
+        } catch (IOException ex) {
+            throw new ProjectBuildException("Could not upload project", ex);
         }
     }
 }

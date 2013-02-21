@@ -14,15 +14,20 @@ import java.util.Properties;
 public class ProjectConfig {
 
     private boolean enabled;
+    private boolean buildDev;
     private SCSInfo scsInfo;
     private BuildInfo buildInfo;
     private PackagerInfo packagerInfo;
+    private UploaderInfo uploaderInfo;
 
     public ProjectConfig() {
         enabled = false;
+        buildDev = true;
+
         scsInfo = new SCSInfo();
         buildInfo = new BuildInfo();
         packagerInfo = new PackagerInfo();
+        uploaderInfo = new UploaderInfo();
     }
 
     public boolean isEnabled() {
@@ -33,18 +38,32 @@ public class ProjectConfig {
         this.enabled = enabled;
     }
 
+    public boolean getBuildDev() {
+        return buildDev;
+    }
+
     public void load(Properties props) {
         enabled = Boolean.parseBoolean(props.getProperty("enabled"));
+        buildDev = Boolean.parseBoolean(props.getProperty("build-dev"));
+
         scsInfo = new SCSInfo(props);
         buildInfo = new BuildInfo(props);
         packagerInfo = new PackagerInfo(props);
+        uploaderInfo = new UploaderInfo(props);
     }
 
     public void save(Properties props) {
         props.setProperty("enabled", Boolean.toString(enabled));
+        props.setProperty("build-dev", Boolean.toString(buildDev));
+
         scsInfo.save(props);
         buildInfo.save(props);
         packagerInfo.save(props);
+        uploaderInfo.save(props);
+    }
+
+    public SCSInfo getSCSInfo() {
+        return scsInfo;
     }
 
     public BuildInfo getBuildInfo() {
@@ -55,8 +74,8 @@ public class ProjectConfig {
         return packagerInfo;
     }
 
-    public SCSInfo getSCSInfo() {
-        return scsInfo;
+    public UploaderInfo getUploaderInfo() {
+        return uploaderInfo;
     }
 
     public static class SCSInfo {
@@ -193,6 +212,101 @@ public class ProjectConfig {
 
         public String getLibsDirectory() {
             return libsDirectory;
+        }
+    }
+
+    public static class UploaderInfo {
+
+        private String rpcURL;
+        private String rpcUsername;
+        private String rpcPassword;
+        private String postTitle;
+        private String postContent;
+        private String[] postTags;
+
+        public UploaderInfo() {
+            rpcURL = "";
+            rpcUsername = "";
+            rpcPassword = "";
+            postTitle = "";
+            postContent = "";
+            postTags = new String[]{};
+        }
+
+        public UploaderInfo(String rpcURL, String rpcUsername,
+                String rpcPassword, String postTitle, String postContent,
+                String[] postTags) {
+            this.rpcURL = rpcURL;
+            this.rpcUsername = rpcUsername;
+            this.rpcPassword = rpcPassword;
+            this.postTitle = postTitle;
+            this.postContent = postContent;
+            this.postTags = postTags;
+        }
+
+        public UploaderInfo(Properties props) {
+            this(props.getProperty("uploader.rpc-url"),
+                 props.getProperty("uploader.rpc-username"),
+                 props.getProperty("uploader.rpc-password"),
+                 props.getProperty("uploader.post-title"),
+                 props.getProperty("uploader.post-content"),
+                 props.getProperty("uploader.post-tags").split(";"));
+        }
+
+        public void save(Properties props) {
+            props.setProperty("uploader.rpc-url", rpcURL);
+            props.setProperty("uploader.rpc-username", rpcUsername);
+            props.setProperty("uploader.rpc-password", rpcPassword);
+            props.setProperty("uploader.post-title", postTitle);
+            props.setProperty("uploader.post-content", postContent);
+            props.setProperty("uploader.post-tags", concatTags(postTags));
+        }
+
+        private String concatTags(String[] postTags) {
+            StringBuilder builder = new StringBuilder();
+
+            int i = 0;
+            for (String tag : postTags) {
+                if (i != 0)
+                    builder.append(";");
+
+                builder.append(tag);
+                i++;
+            }
+
+            return builder.toString();
+        }
+
+        public String getRpcURL() {
+            return rpcURL;
+        }
+
+        public String getRpcUsername() {
+            return rpcUsername;
+        }
+
+        public String getRpcPassword() {
+            return rpcPassword;
+        }
+
+        public String getPostTitle() {
+            return postTitle;
+        }
+
+        public String getPostTitle(String version) {
+            return postTitle.replace("%v", version);
+        }
+
+        public String getPostContent() {
+            return postContent;
+        }
+
+        public String getPostContent(String url, String version) {
+            return postContent.replace("%u", url).replace("%v", version);
+        }
+
+        public String[] getPostTags() {
+            return postTags;
         }
     }
 }
